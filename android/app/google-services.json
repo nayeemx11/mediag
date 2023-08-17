@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "2569042607",
+    "project_id": "mediag-277f9",
+    "storage_bucket": "mediag-277f9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:2569042607:android:e5921685251ef1d1fc725a",
+        "android_client_info": {
+          "package_name": "com.uits47.mediag"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "2569042607-t94tcjm4i7b8augajgcsri648vpinaid.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApiKKg2P6YI1uWLXaBBsRdMNYg1V6ZKb4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "2569042607-t94tcjm4i7b8augajgcsri648vpinaid.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "2569042607-n44ccnu5ju56po4lo4v36nbuher0bnu9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.currencyConvetter.RunnerTests"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
