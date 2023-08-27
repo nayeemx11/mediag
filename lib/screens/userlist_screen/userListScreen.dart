@@ -1,8 +1,26 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mediag/updateusersdetails.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../authentication/login_screen.dart';
+import '../splash/splash_screen.dart';
 
 class UserListScreen extends StatelessWidget {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<void> _logout(BuildContext context) async {
+    await _auth.signOut();
+
+    var sharedPreferences = await SharedPreferences.getInstance();
+    sharedPreferences.setBool(Splash_ScreenState.KEYLOGIN, false);
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => login_Screen()),
+    );
+  }
+
   final db = FirebaseFirestore.instance;
 
   @override
@@ -10,6 +28,41 @@ class UserListScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('User List'),
+        actions: <Widget>[
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'updateEmail') {
+                // _updateEmail();
+              } else if (value == 'updatePassword') {
+                // _updatePassword();
+              } else if (value == 'deleteAccount') {
+                // _deleteAccount(context);
+              } else if (value == 'logout') {
+                _logout(context);
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                // PopupMenuItem<String>(
+                //   value: 'updateEmail',
+                //   child: Text('Update Email'),
+                // ),
+                // PopupMenuItem<String>(
+                //   value: 'updatePassword',
+                //   child: Text('Update Password'),
+                // ),
+                // PopupMenuItem<String>(
+                //   value: 'deleteAccount',
+                //   child: Text('Delete Account'),
+                // ),
+                PopupMenuItem<String>(
+                  value: 'logout',
+                  child: Text('Logout'),
+                ),
+              ];
+            },
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: db.collection('User').snapshots(),
