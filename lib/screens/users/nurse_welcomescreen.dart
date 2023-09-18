@@ -13,7 +13,7 @@ extension ObjectExtension on Object {
   }
 }
 
-class WelcomeScreen extends StatelessWidget {
+class Nurse_WelcomeScreen extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> _logout(BuildContext context) async {
@@ -107,7 +107,7 @@ class WelcomeScreen extends StatelessWidget {
           ),
         ),
         child: Center(
-          child: Text("this welcome screen will be implemented soon"),
+          child: Text("this welcome login as Nurse screen will be implemented soon"),
 
           // child: Column(
           // mainAxisAlignment: MainAxisAlignment.center,

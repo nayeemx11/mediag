@@ -1,11 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:mediag/screens/users/nurse_welcomescreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 // import 'package:mediag/welcomescreen.dart';
 
 import '../splash/splash_screen.dart';
-import '../welcome/welcomescreen.dart';
+import '../users/patient_welcomescreen.dart';
 import 'login_screen.dart';
 
 const List<String> list = <String>['Login As', 'Nurse', 'Patient'];
@@ -25,42 +27,108 @@ class _Signup_ScreenState extends State<Signup_Screen> {
   String _password = '';
   String _user_name = '';
   String _login_as = '';
+  String _reegitratrionid = '';
+  String? _errorText = '';
+
+  int flagNurse = 1;
 
   void setLoginAs(String login_as) {
-    this._login_as = login_as;
+    _login_as = login_as;
   }
 
-  Future<void> _signup() async {
+  // Validate email format
+  bool _validateEmail(String value) {
+    final emailPattern = RegExp(r'^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$');
+    return emailPattern.hasMatch(value);
+  }
+
+  Future<bool> _emailCheckUser(String email) async {
+    final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('n001')
+        .where('email', isEqualTo: email)
+        .get();
+
+    return querySnapshot.docs.isEmpty;
+  }
+
+  Future<bool> checkIfEmailExists(String email) async {
+    try {
+      List<String> signInMethods =
+          await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
+      return signInMethods
+          .isNotEmpty; // Return true if email is registered, false otherwise
+    } catch (e) {
+      print('Error checking email existence: $e');
+      return false; // Handle errors by returning false
+    }
+  }
+
+  Future<bool> _signup() async {
+    final email = _email;
+
+    if (_validateEmail(email)) {
+      setState(() {
+        _errorText = null; // Reset error message
+      });
+
+      // Do something with the valid email
+      print('Valid email: $email');
+    } else {
+      setState(() {
+        _errorText = 'Invalid email format';
+      });
+
+      if (await _emailCheckUser(_email)) {
+        setState(() {
+          _errorText = null;
+        });
+      } else {
+        setState(() {
+          _errorText = 'Mail already exists';
+        });
+      }
+
+      if (await checkIfEmailExists(_email)) {
+        _errorText = null;
+      } else {
+        _errorText = 'Mail already exists';
+      }
+    }
+
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       try {
-        await _auth.createUserWithEmailAndPassword(
-            email: _email, password: _password);
-        _create();
+        if (_login_as == "Nurse") {
+          DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+              .collection(_reegitratrionid)
+              .doc(_login_as)
+              .get();
 
-        var sharedPreferences = await SharedPreferences.getInstance();
-        sharedPreferences.setBool(Splash_ScreenState.KEYLOGIN, true);
+          if (documentSnapshot.exists || _errorText != null) {
+            flagNurse = 0;
+            return false;
+          } else {
+            flagNurse = 1;
+            _create();
 
-        // final db = FirebaseFirestore.instance;
-
-        // db.collection("User").get().then(
-        //   (querySnapshot) {
-        //     print("Successfully completed");
-        //     for (var docSnapshot in querySnapshot.docs) {
-        //       print('${docSnapshot.id} => ${docSnapshot.data()}');
-        //     }
-        //   },
-        //   onError: (e) => print("Error completing: $e"),
-        // );
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => WelcomeScreen()),
-        );
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => Nurse_WelcomeScreen()),
+            );
+          }
+        } else {
+          _create();
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => Patient_WelcomeScreen()),
+          );
+        }
       } catch (error) {
         // Handle signup error
       }
     }
+
+    return true;
   }
 
   Future<void> _login() async {
@@ -81,17 +149,53 @@ class _Signup_ScreenState extends State<Signup_Screen> {
   }
 
   Future<void> _create() async {
-    DocumentReference documentReference =
-        FirebaseFirestore.instance.collection("User").doc(_user_name);
+    try {
+      if (_login_as == "Patient") {
+        await _auth.createUserWithEmailAndPassword(
+            email: _email, password: _password);
 
-    documentReference.set(
-      {
-        'user_name': _user_name,
-        'email': _email,
-        'password': _password,
-        'loggin_as': _login_as,
-      },
-    );
+        var sharedPreferences = await SharedPreferences.getInstance();
+        sharedPreferences.setBool(Splash_ScreenState.KEYLOGIN, true);
+
+        DocumentReference documentReferencePatient = FirebaseFirestore.instance
+            .collection(_reegitratrionid)
+            .doc(_login_as)
+            .collection(_user_name)
+            .doc();
+        documentReferencePatient.set(
+          {
+            'user_name': _user_name,
+            'email': _email,
+            'password': _password,
+            'loggin_as': _login_as,
+            'registration_id': _reegitratrionid,
+          },
+        );
+        print("patient created");
+      } else if (_login_as == "Nurse") {
+        await _auth.createUserWithEmailAndPassword(
+            email: _email, password: _password);
+
+        var sharedPreferences = await SharedPreferences.getInstance();
+        sharedPreferences.setBool(Splash_ScreenState.KEYLOGIN, true);
+
+        DocumentReference documentReference = FirebaseFirestore.instance
+            .collection(_reegitratrionid)
+            .doc(_login_as);
+
+        documentReference.set(
+          {
+            'user_name': _user_name,
+            'email': _email,
+            'password': _password,
+            'loggin_as': _login_as,
+            'registration_id': _reegitratrionid,
+          },
+        );
+      }
+    } catch (e) {
+      _errorText = e.toString();
+    }
   }
 
   // void showsome() async {
@@ -133,6 +237,7 @@ class _Signup_ScreenState extends State<Signup_Screen> {
                 },
                 decoration: InputDecoration(
                   hintText: "Email",
+                  errorText: _errorText,
                 ),
               ),
               TextField(
@@ -143,6 +248,17 @@ class _Signup_ScreenState extends State<Signup_Screen> {
                 },
                 decoration: InputDecoration(
                   hintText: "Password",
+                ),
+              ),
+              TextField(
+                onChanged: (rid_value) {
+                  setState(() {
+                    _reegitratrionid = rid_value;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: "Registration ID",
+                  label: Text("Enter your Registration ID"),
                 ),
               ),
               DropdownButton<String>(
@@ -167,48 +283,6 @@ class _Signup_ScreenState extends State<Signup_Screen> {
                   );
                 }).toList(),
               ),
-              // DropdownButton(
-              //   value: dropdownValue,
-              //   icon: const Icon(Icons.menu),
-              //   style: const TextStyle(color: Colors.white),
-              //   underline: Container(
-              //     height: 2,
-              //     color: Colors.white,
-              //   ),
-              //   onChanged: (String? newValue) {
-              //     setState(() {
-              //       dropdownValue = newValue?? '';
-              //     });
-              //   },
-              //   items: [
-              //     DropdownMenuItem<String>(
-              //       value: 'Patient',
-              //       child: GestureDetector(
-              //         onTap: () {
-              //           setState(() {
-              //             dropdownValue = 'Patient';
-              //             setLoginAs(
-              //                 "Patient"); // Assuming setLoginAs is a function to set the login role
-              //           });
-              //         },
-              //         child: Text("Patient"),
-              //       ),
-              //     ),
-              //     DropdownMenuItem<String>(
-              //       value: 'Nurse',
-              //       child: GestureDetector(
-              //         onTap: () {
-              //           setState(() {
-              //             dropdownValue = 'Nurse';
-              //             setLoginAs(
-              //                 "Nurse"); // Assuming setLoginAs is a function to set the login role
-              //           });
-              //         },
-              //         child: Text("Nurse"),
-              //       ),
-              //     ),
-              //   ],
-              // ),
               Row(
                 children: [
                   TextButton(
@@ -221,7 +295,35 @@ class _Signup_ScreenState extends State<Signup_Screen> {
                     child: Text("login"),
                   ),
                   TextButton(
-                    onPressed: _signup,
+                    onPressed: () {
+                      _signup();
+                      if (flagNurse == 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Container(
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                              ),
+                              child: Text("Already have an account."),
+                            ),
+                          ),
+                        );
+                      } else {
+                        print("signed in");
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Container(
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                              ),
+                              child: Text("Signed in Successfully."),
+                            ),
+                          ),
+                        );
+                      }
+                    },
                     child: Text("signup"),
                   ),
                 ],

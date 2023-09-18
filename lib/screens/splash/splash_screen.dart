@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mediag/screens/authentication/login_screen.dart';
-import 'package:mediag/screens/welcome/welcomescreen.dart';
+import 'package:mediag/screens/users/patient_welcomescreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Splash_Screen extends StatefulWidget {
@@ -30,7 +30,7 @@ class Splash_ScreenState extends State<Splash_Screen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => WelcomeScreen(),
+            builder: (context) => Patient_WelcomeScreen(),
           ),
         );
       } else {

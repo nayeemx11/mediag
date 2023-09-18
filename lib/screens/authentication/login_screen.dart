@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:mediag/screens/users/patient_welcomescreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:mediag/screens/userlist_screen/userListScreen.dart';
 import 'package:mediag/screens/authentication/signup_screen.dart';
 import 'package:mediag/screens/splash/splash_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import '../welcome/welcomescreen.dart';
 
 class login_Screen extends StatefulWidget {
   const login_Screen({super.key});
@@ -34,13 +34,30 @@ class _login_ScreenState extends State<login_Screen> {
             MaterialPageRoute(builder: (context) => UserListScreen()),
           );
         } else {
-          // jsut normal user will get the remember me feature
+          // just normal user will get the remember me feature
           var sharedPreferences = await SharedPreferences.getInstance();
           sharedPreferences.setBool(Splash_ScreenState.KEYLOGIN, true);
+
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => WelcomeScreen()),
+            MaterialPageRoute(builder: (context) => Patient_WelcomeScreen()),
           );
+
+          // if ( == "Nurse"){
+          //   Navigator.pushReplacement(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (context) => Nurse_WelcomeScreen(),
+          //     ),
+          //   );
+          // } else if ( == "Patient"){
+          //   Navigator.pushReplacement(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (context) => Patient_WelcomeScreen(),
+          //     ),
+          //   );
+          // }
         }
       } catch (error) {
         // Handle login error
@@ -84,9 +101,9 @@ class _login_ScreenState extends State<login_Screen> {
           child: Column(
             children: [
               TextField(
-                onChanged: (e_value) {
+                onChanged: (eValue) {
                   setState(() {
-                    _email = e_value;
+                    _email = eValue;
                   });
                 },
                 decoration: InputDecoration(
@@ -94,14 +111,16 @@ class _login_ScreenState extends State<login_Screen> {
                 ),
               ),
               TextField(
-                onChanged: (p_value) {
+                onChanged: (pValue) {
                   setState(() {
-                    _password = p_value;
+                    _password = pValue;
                   });
                 },
                 decoration: InputDecoration(
                   hintText: "Password",
+                  label: Text("Enter your password"),
                 ),
+                obscureText: true,
               ),
               Row(
                 children: [
