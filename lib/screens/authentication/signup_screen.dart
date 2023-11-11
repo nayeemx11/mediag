@@ -157,11 +157,15 @@ class _Signup_ScreenState extends State<Signup_Screen> {
         var sharedPreferences = await SharedPreferences.getInstance();
         sharedPreferences.setBool(Splash_ScreenState.KEYLOGIN, true);
 
-        DocumentReference documentReferencePatient = FirebaseFirestore.instance
-            .collection(_reegitratrionid)
-            .doc(_login_as)
-            .collection(_user_name)
-            .doc();
+        // DocumentReference documentReferencePatient = FirebaseFirestore.instance
+        //     .collection(_reegitratrionid)
+        //     .doc(_user_name)
+        //     .collection(_user_name)
+        //     .doc(_user_name);
+
+        DocumentReference documentReferencePatient =
+            FirebaseFirestore.instance.collection(_reegitratrionid).doc(_email);
+
         documentReferencePatient.set(
           {
             'user_name': _user_name,

@@ -16,7 +16,6 @@ class Splash_ScreenState extends State<Splash_Screen> {
   @override
   void initState() {
     super.initState();
-
     whereToGo();
   }
 

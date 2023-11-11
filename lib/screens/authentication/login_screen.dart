@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:mediag/screens/updateuserdetails/userupdateprofileview.dart';
 import 'package:mediag/screens/users/patient_welcomescreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,6 +16,11 @@ class login_Screen extends StatefulWidget {
 }
 
 class _login_ScreenState extends State<login_Screen> {
+  String _user_name = '';
+  String _login_as = '';
+  String _reegitratrionid = '';
+  String? _errorText = '';
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -29,19 +35,35 @@ class _login_ScreenState extends State<login_Screen> {
             email: _email, password: _password);
 
         if (_email == "nayeemx11@gmail.com") {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => UserListScreen()),
-          );
+          Navigator.pushReplacement(context, MaterialPageRoute(
+            builder: (context) {
+              return UserListScreen(registrationid: _reegitratrionid);
+            },
+          )
+              // MaterialPageRoute(
+              //     builder: (context) => UserListScreen(
+              //           email: _email,
+              //           login_as: _login_as,
+              //           password: _password,
+              //           reegitratrionid: _reegitratrionid,
+              //           user_name: _user_name,
+              //         )),
+              );
         } else {
           // just normal user will get the remember me feature
           var sharedPreferences = await SharedPreferences.getInstance();
           sharedPreferences.setBool(Splash_ScreenState.KEYLOGIN, true);
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => Patient_WelcomeScreen()),
-          );
+          // Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(builder: (context) => Patient_WelcomeScreen()),
+          // );
+          // Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(
+          //       builder: (context) => UserProfilePage(this._email,
+          //           this._password, this._reegitratrionid, this._login_as)),
+          // );
 
           // if ( == "Nurse"){
           //   Navigator.pushReplacement(
@@ -119,6 +141,18 @@ class _login_ScreenState extends State<login_Screen> {
                 decoration: InputDecoration(
                   hintText: "Password",
                   label: Text("Enter your password"),
+                ),
+                obscureText: true,
+              ),
+              TextField(
+                onChanged: (regVelu) {
+                  setState(() {
+                    _reegitratrionid = regVelu;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: "reg ID",
+                  label: Text("Enter your reg ID"),
                 ),
                 obscureText: true,
               ),

@@ -1,141 +1,140 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:mediag/screens/updateuserdetails/updateusersdetails.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mediag/screens/updateuserdetails/userupdateprofileview.dart';
 
-import '../authentication/login_screen.dart';
-import '../splash/splash_screen.dart';
+class UserListScreen extends StatefulWidget {
+  final String _registrationid;
 
-class UserListScreen extends StatelessWidget {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  const UserListScreen({super.key, required String registrationid})
+      : _registrationid = registrationid;
 
-  Future<void> _logout(BuildContext context) async {
-    await _auth.signOut();
+  @override
+  State<UserListScreen> createState() => _UserListScreenState();
+}
 
-    var sharedPreferences = await SharedPreferences.getInstance();
-    sharedPreferences.setBool(Splash_ScreenState.KEYLOGIN, false);
+class _UserListScreenState extends State<UserListScreen> {
+  late List<dynamic> allData = [];
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => login_Screen()),
+  @override
+  void initState() {
+    getData();
+    super.initState();
+  }
+
+  CollectionReference get _collectionRef =>
+      FirebaseFirestore.instance.collection(widget._registrationid);
+
+  Future<void> getData() async {
+    QuerySnapshot querySnapshot = await _collectionRef.get();
+
+    final data = querySnapshot.docs.map((doc) {
+      return doc.data();
+    }).toList();
+
+    setState(() {
+      allData = data;
+    });
+  }
+
+  Future<String> getPasskeyValue(int index) async {
+    String collectionName = widget._registrationid;
+    String documentName = allData[index]['email'];
+    String fieldName = 'passkey';
+
+    // Access Firestore and get the field value
+    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+        .collection(collectionName)
+        .doc(documentName)
+        .get();
+
+    // Check if the document exists and the field is not null
+    if (documentSnapshot.exists && documentSnapshot.data() != null) {
+      // Access the field value
+      return documentSnapshot.get(fieldName).toString();
+    } else {
+      return 'Document or field not found';
+    }
+  }
+
+  void _showVerificationPopup(String email, int index) {
+    String enteredCode = '';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Enter 4-digit code for $email:'),
+          content: TextField(
+            keyboardType: TextInputType.number,
+            maxLength: 4,
+            onChanged: (value) {
+              enteredCode = value;
+            },
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                // Check if enteredCode matches the expected code
+                if ((enteredCode.toString()) ==
+                    (await getPasskeyValue(index))) {
+                  print(await getPasskeyValue(index));
+                  Navigator.of(context).pop(); // Close the dialog
+                  _navigateToNextScreen(email);
+                } else {
+                  print(await getPasskeyValue(index));
+                  // Show an error or do something else
+                  print('Incorrect code entered');
+                }
+              },
+              child: Text('Submit'),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  final db = FirebaseFirestore.instance;
+  void _navigateToNextScreen(String email) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UserProfilePage(email, widget._registrationid),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('User List'),
-        actions: <Widget>[
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'updateEmail') {
-                // _updateEmail();
-              } else if (value == 'updatePassword') {
-                // _updatePassword();
-              } else if (value == 'deleteAccount') {
-                // _deleteAccount(context);
-              } else if (value == 'logout') {
-                _logout(context);
-              }
-            },
-            itemBuilder: (BuildContext context) {
-              return [
-                // PopupMenuItem<String>(
-                //   value: 'updateEmail',
-                //   child: Text('Update Email'),
-                // ),
-                // PopupMenuItem<String>(
-                //   value: 'updatePassword',
-                //   child: Text('Update Password'),
-                // ),
-                // PopupMenuItem<String>(
-                //   value: 'deleteAccount',
-                //   child: Text('Delete Account'),
-                // ),
-                PopupMenuItem<String>(
-                  value: 'logout',
-                  child: Text('Logout'),
-                ),
-              ];
-            },
-          ),
-        ],
+        title: Text('Users'),
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: db.collection('User').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+      body: ListView.builder(
+        itemCount: allData.length,
+        itemBuilder: (BuildContext context, int index) {
+          final userName = allData[index]['user_name'];
+          final email = allData[index]['email'];
+
+          if (userName != null && email != null) {
+            return ListTile(
+              title: Text(userName),
+              subtitle: Text(email),
+              onTap: () {
+                _showVerificationPopup(email, index);
+              },
+            );
+          } else {
+            return Container();
           }
-
-          if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
-          }
-
-          // Data is available
-          final querySnapshot = snapshot.data!;
-          final userList = querySnapshot.docs;
-
-          return ListView.builder(
-            itemCount: userList.length,
-            itemBuilder: (context, index) {
-              final docSnapshot = userList[index];
-              final username = docSnapshot.id;
-              final email = docSnapshot
-                  .get('email'); // Change 'email' to your actual field name
-
-              return ListTile(
-                title: Text(username),
-                subtitle: Text(email),
-                trailing: Icon(Icons.edit),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => UpdateUserDetails(),
-                    ),
-                  );
-                },
-                // You can add more properties to ListTile if needed
-                // For example: trailing: Icon(Icons.chevron_right),
-              );
-            },
-          );
         },
       ),
     );
   }
 }
-
-  //   db.collection("User").get().then(
-  //     (querySnapshot) {
-  //       print("Successfully completed");
-  //       for (var docSnapshot in querySnapshot.docs) {
-  //         print('${docSnapshot.id} => ${docSnapshot.data()}');
-  //       }
-  //     },
-  //     onError: (e) => print("Error completing: $e"),
-  //   );
-  // }
-
-
-
-
-
-      // ListView.separated(itemBuilder: (context, index){
-      //   return ListTile(
-      //     // leading: ,
-      //     title: ,
-      //     subtitle: ,
-      //     trailing: Icon(Icons.edit),
-      //   );
-      // },
-      // itemCount: 5,
-      // separatorBuilder: (context, index){
-      //   return Divider(height: 20, thickness: 1,);
-      // }
-      // ),
-    // );
