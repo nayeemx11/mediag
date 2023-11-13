@@ -2,7 +2,7 @@
 
 git init
 git add -A
-git commit -m "11/11/23 commit"
+git commit -m "13/11/23 commit"
 git branch -M main
 git remote add origin https://github.com/nayeemx11/mediag.git
 git push -u origin main

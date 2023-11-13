@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mediag/screens/authentication/login_screen.dart';
+import 'package:mediag/screens/updateuserdetails/personalInfo.dart';
 import 'package:mediag/screens/users/patient_welcomescreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,6 +13,8 @@ class Splash_Screen extends StatefulWidget {
 
 class Splash_ScreenState extends State<Splash_Screen> {
   static const String KEYLOGIN = "Login";
+  static const String KEY_EMAIL = "Email";
+  static const String KEY_REG = "REG";
 
   @override
   void initState() {
@@ -29,14 +32,14 @@ class Splash_ScreenState extends State<Splash_Screen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => Patient_WelcomeScreen(),
+            builder: (context) => PersonalInformationCard(KEY_EMAIL, KEY_REG,),
           ),
         );
       } else {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => login_Screen(),
+            builder: (context) => Login_Screen(),
           ),
         );
       }
@@ -44,7 +47,7 @@ class Splash_ScreenState extends State<Splash_Screen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => login_Screen(),
+          builder: (context) => Login_Screen(),
         ),
       );
     }

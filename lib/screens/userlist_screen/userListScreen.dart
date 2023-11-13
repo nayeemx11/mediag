@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:mediag/screens/updateuserdetails/updateusersdetails.dart';
-import 'package:mediag/screens/updateuserdetails/userupdateprofileview.dart';
-
+import 'package:mediag/screens/updateuserdetails/personInfoupdate.dart';
 class UserListScreen extends StatefulWidget {
   final String _registrationid;
 
@@ -105,7 +103,7 @@ class _UserListScreenState extends State<UserListScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => UserProfilePage(email, widget._registrationid),
+        builder: (context) => personalInfoUpdate(email, widget._registrationid),
       ),
     );
   }

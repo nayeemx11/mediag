@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:mediag/screens/updateuserdetails/personInfoupdate.dart';
+import 'package:mediag/screens/updateuserdetails/personalInfo.dart';
 import 'package:mediag/screens/users/nurse_welcomescreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,7 +12,7 @@ import '../splash/splash_screen.dart';
 import '../users/patient_welcomescreen.dart';
 import 'login_screen.dart';
 
-const List<String> list = <String>['Login As', 'Nurse', 'Patient'];
+const List<String> list = <String>['Login As', 'Patient', 'Doctor', 'Nurse'];
 
 class Signup_Screen extends StatefulWidget {
   const Signup_Screen({super.key});
@@ -66,6 +68,27 @@ class _Signup_ScreenState extends State<Signup_Screen> {
   Future<bool> _signup() async {
     final email = _email;
 
+    if (_user_name.isEmpty ||
+        _email.isEmpty ||
+        _password.isEmpty ||
+        _reegitratrionid.isEmpty ||
+        _login_as == list[1]) {
+      print("not signed in");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Container(
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.red,
+            ),
+            child: Text("Signed Uncessful."),
+          ),
+        ),
+      );
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => Signup_Screen()));
+    }
+
     if (_validateEmail(email)) {
       setState(() {
         _errorText = null; // Reset error message
@@ -113,14 +136,16 @@ class _Signup_ScreenState extends State<Signup_Screen> {
 
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => Nurse_WelcomeScreen()),
+              MaterialPageRoute(builder: (context) => Login_Screen()),
+              // personalInfoUpdate(_email, _reegitratrionid)),
             );
           }
         } else {
           _create();
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => Patient_WelcomeScreen()),
+            MaterialPageRoute(builder: (context) => Login_Screen()),
+            // PersonalInformationCard(_email, _reegitratrionid)),
           );
         }
       } catch (error) {
@@ -135,12 +160,12 @@ class _Signup_ScreenState extends State<Signup_Screen> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       try {
-        await _auth.signInWithEmailAndPassword(
-            email: _email, password: _password);
+        // await _auth.signInWithEmailAndPassword(
+        //     email: _email, password: _password);
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => login_Screen()),
+          MaterialPageRoute(builder: (context) => Login_Screen()),
         );
       } catch (error) {
         // Handle login error
@@ -218,61 +243,85 @@ class _Signup_ScreenState extends State<Signup_Screen> {
       appBar: AppBar(
         title: Text("SignUp to App"),
       ),
-      body: Container(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextField(
+      body: Form(
+        key: _formKey,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
                 onChanged: (un_value) {
                   setState(() {
                     _user_name = un_value;
                   });
                 },
                 decoration: InputDecoration(
-                  hintText: "User name",
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person),
+                  labelText: "Enter your User name",
                 ),
               ),
-              TextField(
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
                 onChanged: (e_value) {
                   setState(() {
                     _email = e_value;
                   });
                 },
                 decoration: InputDecoration(
-                  hintText: "Email",
-                  errorText: _errorText,
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.mail),
+                  labelText: "Must Enter your Email",
+                  // errorText: _errorText,
                 ),
               ),
-              TextField(
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                obscureText: true,
                 onChanged: (p_value) {
                   setState(() {
                     _password = p_value;
                   });
                 },
                 decoration: InputDecoration(
-                  hintText: "Password",
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.password),
+                  labelText: "Enter your Password",
                 ),
               ),
-              TextField(
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
                 onChanged: (rid_value) {
                   setState(() {
                     _reegitratrionid = rid_value;
                   });
                 },
                 decoration: InputDecoration(
-                  hintText: "Registration ID",
-                  label: Text("Enter your Registration ID"),
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.app_registration),
+                  labelText: "Enter your Registration ID",
                 ),
               ),
-              DropdownButton<String>(
+            ),
+            SizedBox(
+              // color: Colors.purpleAccent,
+              height: 52,
+              // width: 72,
+
+              child: DropdownButton<String>(
                 value: dropdownValue,
-                icon: const Icon(Icons.arrow_downward),
+                icon: const Icon(Icons.arrow_circle_down_outlined),
                 elevation: 16,
                 style: const TextStyle(color: Colors.black),
                 underline: Container(
                   height: 2,
-                  color: Colors.orange,
+                  // color: Colors.purpleAccent,
                 ),
                 onChanged: (String? value) {
                   setState(() {
@@ -287,18 +336,35 @@ class _Signup_ScreenState extends State<Signup_Screen> {
                   );
                 }).toList(),
               ),
-              Row(
-                children: [
-                  TextButton(
+            ),
+            SizedBox(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                SizedBox(
+                  height: 56,
+                  width: 128,
+                  child: FloatingActionButton(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
                     onPressed: () {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => login_Screen()));
+                              builder: (context) => Login_Screen()));
                     },
-                    child: Text("login"),
+                    child: Text(
+                      "login",
+                      style: TextStyle(fontSize: 24),
+                    ),
                   ),
-                  TextButton(
+                ),
+                SizedBox(
+                  height: 56,
+                  width: 128,
+                  child: FloatingActionButton(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
                     onPressed: () {
                       _signup();
                       if (flagNurse == 0) {
@@ -313,6 +379,27 @@ class _Signup_ScreenState extends State<Signup_Screen> {
                             ),
                           ),
                         );
+                      } else if (_user_name.isEmpty ||
+                          _email.isEmpty ||
+                          _password.isEmpty ||
+                          _reegitratrionid.isEmpty ||
+                          _login_as == list[1]) {
+                        print("not signed in");
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Container(
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                              ),
+                              child: Text("Signed Uncessful."),
+                            ),
+                          ),
+                        );
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => Signup_Screen()));
                       } else {
                         print("signed in");
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -328,12 +415,15 @@ class _Signup_ScreenState extends State<Signup_Screen> {
                         );
                       }
                     },
-                    child: Text("signup"),
+                    child: Text(
+                      "Sign Up",
+                      style: TextStyle(fontSize: 24),
+                    ),
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
